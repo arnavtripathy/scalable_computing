@@ -55,27 +55,31 @@ class ImageSequence(keras.utils.Sequence):
         y = [numpy.zeros((self.batch_size, len(self.captcha_symbols)), dtype=numpy.uint8) for i in range(self.captcha_length)]
 
         for i in range(self.batch_size):
-            random_image_label = random.choice(list(self.files.keys()))
-            random_image_file = self.files[random_image_label]
 
-            # We've used this image now, so we can't repeat it in this iteration
-            self.used_files.append(self.files.pop(random_image_label))
-
-            # We have to scale the input pixel values to the range [0, 1] for
-            # Keras so we divide by 255 since the image is 8-bit RGB
-            raw_data = cv2.imread(os.path.join(self.directory_name, random_image_file))
-            rgb_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2RGB)
-            processed_data = numpy.array(rgb_data) / 255.0
-            X[i] = processed_data
-
-            # We have a little hack here - we save captchas as TEXT_num.png if there is more than one captcha with the text "TEXT"
-            # So the real label should have the "_num" stripped out.
-
-            random_image_label = random_image_label.split('_')[0]
-
-            for j, ch in enumerate(random_image_label):
-                y[j][i, :] = 0
-                y[j][i, self.captcha_symbols.find(ch)] = 1
+            try:
+              random_image_label = random.choice(list(self.files.keys()))
+              random_image_file = self.files[random_image_label]
+  
+              # We've used this image now, so we can't repeat it in this iteration
+              self.used_files.append(self.files.pop(random_image_label))
+  
+              # We have to scale the input pixel values to the range [0, 1] for
+              # Keras so we divide by 255 since the image is 8-bit RGB
+              raw_data = cv2.imread(os.path.join(self.directory_name, random_image_file))
+              rgb_data = cv2.cvtColor(raw_data, cv2.COLOR_BGR2RGB)
+              processed_data = numpy.array(rgb_data) / 255.0
+              X[i] = processed_data
+  
+              # We have a little hack here - we save captchas as TEXT_num.png if there is more than one captcha with the text "TEXT"
+              # So the real label should have the "_num" stripped out.
+  
+              random_image_label = random_image_label.split('_')[0]
+  
+              for j, ch in enumerate(random_image_label):
+                  y[j][i, :] = 0
+                  y[j][i, self.captcha_symbols.find(ch)] = 1
+            except Exception as e:
+                break
 
         return X, y
 
